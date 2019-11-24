@@ -85,14 +85,16 @@ class MissionStateMachine:
             num_complete = sum([1 for x in states.values() if x == 'TASK_COMPLETED'])
             if num_complete>=1:
                 return 'TASK_COMPLETED'
-            return states[fg]
+            return states[self.fg]
 
-    def createConcurrence(self,fg_state):
+    def createConcurrence(self,fg_state,outcome_cb=None,child_termination_cb=lambda x: True):
         # Create the sub SMACH state machine
-        return smach.Concurrence(outcomes=['TASK_COMPLETED','TASK_INTERRUPTED',
+        if not outcome_cb:
+            outcome_cb = self.concurrent_outcome_cb(self,fg_state)
+        return smach.Concurrence(outcomes=['TASK_COMPLETED','TASK_INITIALISATION_FAILED','TASK_INTERRUPTED',
                     'TASK_FAILED','TASK_TIMEOUT','MISSION_COMPLETED'], default_outcome='TASK_FAILED',
-                    outcome_cb = self.concurrent_outcome_cb(self,fg_state),
-                    child_termination_cb=lambda x:True)
+                    outcome_cb = outcome_cb,
+                    child_termination_cb=child_termination_cb)
 
     class TaskEpsilon(smach.State):
         def __init__(self):
