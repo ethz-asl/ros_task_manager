@@ -122,15 +122,24 @@ class MissionStateMachine:
         return state_name
 
     def task(self,name,**params):
-        params['foreground']=True
+        foreground = params['foreground']  # This must be defined
         state_name = None
         if 'label' in params:
             state_name=params['label']
             del params['label']
         else:
             state_name = self.getLabel(name)
-        T=params['transitions']
-        del params['transitions']
+        if 'transitions' in params:
+            T=params['transitions']
+            del params['transitions']
+        else:
+            # Set default connections
+            T={'TASK_COMPLETED':'TASK_COMPLETED',
+            'TASK_INITIALISATION_FAILED':'TASK_INITIALISATION_FAILED',
+            'TASK_INTERRUPTED':'TASK_INTERRUPTED',
+            'TASK_FAILED':'TASK_FAILED',
+            'TASK_TIMEOUT':'TASK_TIMEOUT',
+            'MISSION_COMPLETED':'MISSION_COMPLETED'}
         smach.StateMachine.add(state_name, TaskState(self,self.tc,name,**params),T)
         return state_name
 
