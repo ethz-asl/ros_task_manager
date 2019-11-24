@@ -18,7 +18,7 @@ class MissionCompleted(smach.State):
 class TaskState(smach.State):
     def __init__(self,mi,tc,name,**params):
         smach.State.__init__(self, 
-                outcomes=['TASK_COMPLETED','TASK_INTERRUPTED',
+                outcomes=['TASK_COMPLETED','TASK_INITIALISATION_FAILED','TASK_INTERRUPTED',
                     'TASK_FAILED','TASK_TIMEOUT','MISSION_COMPLETED'])
         self.mi = mi
         self.tc = tc
@@ -39,6 +39,8 @@ class TaskState(smach.State):
         except TaskException, e:
             if e.status == TaskStatus.TASK_TIMEOUT:
                 return 'TASK_TIMEOUT'
+            elif e.status == TaskStatus.TASK_INITIALISATION_FAILED:
+                return 'TASK_INITIALISATION_FAILED'
             elif e.status == TaskStatus.TASK_INTERRUPTED:
                 return 'TASK_INTERRUPTED'
             return 'TASK_FAILED'
@@ -64,11 +66,11 @@ class MissionStateMachine:
         return self.shutdown_requested
 
     def createStateMachine(self):
-        return smach.StateMachine(outcomes=['TASK_COMPLETED','TASK_INTERRUPTED',
+        return smach.StateMachine(outcomes=['TASK_COMPLETED','TASK_INITIALISATION_FAILED','TASK_INTERRUPTED',
                     'TASK_FAILED','TASK_TIMEOUT','MISSION_COMPLETED'])
 
     def createSequence(self):
-        return smach.Sequence(outcomes=['TASK_COMPLETED','TASK_INTERRUPTED',
+        return smach.Sequence(outcomes=['TASK_COMPLETED','TASK_INITIALISATION_FAILED','TASK_INTERRUPTED',
                     'TASK_FAILED','TASK_TIMEOUT','MISSION_COMPLETED'],
                 connector_outcome='TASK_COMPLETED')
 
