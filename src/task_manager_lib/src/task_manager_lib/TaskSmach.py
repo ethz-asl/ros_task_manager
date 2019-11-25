@@ -5,6 +5,8 @@ import smach_ros
 import signal
 import sys
 
+from std_srvs.srv import Empty, EmptyResponse
+
 class MissionFailed(smach.State):
     def __init__(self):
         smach.State.__init__(self, 
@@ -41,7 +43,8 @@ class TaskState(smach.State):
                 return 'TASK_TIMEOUT'
             elif e.status == TaskStatus.TASK_INITIALISATION_FAILED:
                 return 'TASK_INITIALISATION_FAILED'
-            elif e.status == TaskStatus.TASK_INTERRUPTED:
+            elif e.status == TaskStatus.TASK_INTERRUPTED or e.status == None:
+                # If terminated using Ctrl+C status is None
                 return 'TASK_INTERRUPTED'
             return 'TASK_FAILED'
 
@@ -54,6 +57,7 @@ class MissionStateMachine:
     def __init__(self,tc=None):
         self.shutdown_requested = False
         self.pseudo_states={}
+        self.sm = None
         server_node = rospy.get_param("~server","/turtlesim_tasks")
         default_period = rospy.get_param("~period",0.2)
         if tc:
@@ -61,6 +65,15 @@ class MissionStateMachine:
         else:
             self.tc = TaskClient(server_node,default_period)
         # self.tc.verbose = 2
+        self.complete_srv = rospy.Service(self.tc.server_node + "/complete_mission", Empty, self.shutdown)
+
+    def shutdown(self, _):
+        if self.sm is not None:
+            self.shutdown_requested = True
+            self.sm.request_preempt()
+        else:
+            rospy.logwarn("State Machine not running. Call run() method first.")
+        return EmptyResponse()
 
     def is_shutdown(self):
         return self.shutdown_requested
@@ -168,28 +181,12 @@ class MissionStateMachine:
         smach.Concurrence.add(state_name, TaskState(self,self.tc,name,**params))
         return state_name
 
-    class signal_handler:
-        def __init__(self,mi,sm):
-            self.mi = mi
-            self.sm = sm
-
-        def __call__(self,signal,frame):
-            # print("Signal %s detected" % str(signal))
-            self.mi.shutdown_requested = True
-            self.sm.request_preempt()
-
     def run(self,sm):
-        self.shutdown_requested = False
-        sis = smach_ros.IntrospectionServer('mission_state_machine', sm, '/SM')
+        self.sm = sm
+        sis = smach_ros.IntrospectionServer('mission_state_machine', self.sm, '/SM')
         sis.start()
 
-        # Execute SMACH tree in a separate thread so that we can ctrl-c the script
-        signal.signal(signal.SIGINT, self.signal_handler(self,sm))
-        smach_thread = threading.Thread(target = sm.execute)
-        smach_thread.start()
-
-        while sm.is_running():
-            rospy.rostime.wallsleep(0.5)
+        self.sm.execute()
 
         sis.stop()
 
