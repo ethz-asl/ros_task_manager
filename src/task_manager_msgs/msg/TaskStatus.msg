@@ -13,6 +13,12 @@ uint8 TASK_TIMEOUT = 8
 uint8 TASK_CONFIGURATION_FAILED = 9
 uint8 TASK_INITIALISATION_FAILED = 10
 
+# Alternative transition conditions 
+uint8 TASK_COND_1 = 11
+uint8 TASK_COND_2 = 12
+uint8 TASK_COND_3 = 13
+uint8 TASK_COND_4 = 14
+
 uint32 id
 string name
 uint8 status
