@@ -21,7 +21,7 @@ class TaskState(smach.State):
     def __init__(self,mi,tc,name,**params):
         smach.State.__init__(self, 
                 outcomes=['TASK_COMPLETED','TASK_INITIALISATION_FAILED','TASK_INTERRUPTED',
-                    'TASK_FAILED','TASK_TIMEOUT','MISSION_COMPLETED'])
+                    'TASK_FAILED','TASK_TIMEOUT','MISSION_COMPLETED', 'TASK_COND_1', 'TASK_COND_2', 'TASK_COND_3', 'TASK_COND_4' ])
         self.mi = mi
         self.tc = tc
         self.name = name
@@ -31,7 +31,7 @@ class TaskState(smach.State):
     def execute(self, userdata):
         if self.mi.is_shutdown():
             return 'MISSION_COMPLETED'
-        # rospy.loginfo('Executing state '+self.name)
+        rospy.loginfo('Executing state '+self.name)
         try:
             self.id = self.tc.tasklist[self.name].start(**self.params)
             self.tc.waitTask(self.id)
@@ -46,6 +46,8 @@ class TaskState(smach.State):
             elif e.status == TaskStatus.TASK_INTERRUPTED or e.status == None:
                 # If terminated using Ctrl+C status is None
                 return 'TASK_INTERRUPTED'
+            elif e.status == TaskStatus.TASK_COND_1:
+                return 'TASK_COND_1'
             return 'TASK_FAILED'
 
     def request_preempt(self):
@@ -80,11 +82,11 @@ class MissionStateMachine:
 
     def createStateMachine(self):
         return smach.StateMachine(outcomes=['TASK_COMPLETED','TASK_INITIALISATION_FAILED','TASK_INTERRUPTED',
-                    'TASK_FAILED','TASK_TIMEOUT','MISSION_COMPLETED'])
+                    'TASK_FAILED','TASK_TIMEOUT','MISSION_COMPLETED', 'TASK_COND_1', 'TASK_COND_2', 'TASK_COND_3', 'TASK_COND_4' ])
 
     def createSequence(self):
         return smach.Sequence(outcomes=['TASK_COMPLETED','TASK_INITIALISATION_FAILED','TASK_INTERRUPTED',
-                    'TASK_FAILED','TASK_TIMEOUT','MISSION_COMPLETED'],
+                    'TASK_FAILED','TASK_TIMEOUT','MISSION_COMPLETED', 'TASK_COND_1', 'TASK_COND_2', 'TASK_COND_3', 'TASK_COND_4' ],
                 connector_outcome='TASK_COMPLETED')
 
     class concurrent_outcome_cb:
@@ -105,13 +107,13 @@ class MissionStateMachine:
         if not outcome_cb:
             outcome_cb = self.concurrent_outcome_cb(self,fg_state)
         return smach.Concurrence(outcomes=['TASK_COMPLETED','TASK_INITIALISATION_FAILED','TASK_INTERRUPTED',
-                    'TASK_FAILED','TASK_TIMEOUT','MISSION_COMPLETED'], default_outcome='TASK_FAILED',
+                    'TASK_FAILED','TASK_TIMEOUT','MISSION_COMPLETED', 'TASK_COND_1', 'TASK_COND_2', 'TASK_COND_3', 'TASK_COND_4'], default_outcome='TASK_FAILED',
                     outcome_cb = outcome_cb,
                     child_termination_cb=child_termination_cb)
 
     class TaskEpsilon(smach.State):
         def __init__(self):
-            smach.State.__init__(self, outcomes=['TASK_COMPLETED','TASK_FAILED'])
+            smach.State.__init__(self, outcomes=['TASK_COMPLETED','TASK_FAILED','TASK_COND_1'])
         def execute(self, userdata):
             return 'TASK_COMPLETED'
 
@@ -152,7 +154,11 @@ class MissionStateMachine:
             'TASK_INTERRUPTED':'TASK_INTERRUPTED',
             'TASK_FAILED':'TASK_FAILED',
             'TASK_TIMEOUT':'TASK_TIMEOUT',
-            'MISSION_COMPLETED':'MISSION_COMPLETED'}
+            'MISSION_COMPLETED':'MISSION_COMPLETED',
+            'TASK_COND_1':'TASK_COND_1',
+            'TASK_COND_2':'TASK_COND_2',
+            'TASK_COND_3':'TASK_COND_3',
+            'TASK_COND_4':'TASK_COND_4'}
         smach.StateMachine.add(state_name, TaskState(self,self.tc,name,**params),T)
         return state_name
 

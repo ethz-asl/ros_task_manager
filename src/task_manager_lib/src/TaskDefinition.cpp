@@ -189,6 +189,10 @@ const char * task_manager_lib::taskStatusToString(TaskIndicator ts)
             case task_manager_msgs::TaskStatus::TASK_TIMEOUT: return "TERMINATED:TIMEOUT";
             case task_manager_msgs::TaskStatus::TASK_CONFIGURATION_FAILED: return "TERMINATED:CONFIGURATION FAILED";
             case task_manager_msgs::TaskStatus::TASK_INITIALISATION_FAILED: return "TERMINATED:INITIALISATION FAILED";
+            case task_manager_msgs::TaskStatus::TASK_COND_1: return "TERMINATED:TASK_COND_1:COMPLETED";
+            case task_manager_msgs::TaskStatus::TASK_COND_2: return "TERMINATED:TASK_COND_2:COMPLETED ";
+            case task_manager_msgs::TaskStatus::TASK_COND_3: return "TERMINATED:TASK_COND_3:COMPLETED";
+            case task_manager_msgs::TaskStatus::TASK_COND_4: return "TERMINATED:TASK_COND_4:COMPLETED";
             default: return "INVALID STATUS";
         }
     } else {
@@ -203,6 +207,10 @@ const char * task_manager_lib::taskStatusToString(TaskIndicator ts)
             case task_manager_msgs::TaskStatus::TASK_TIMEOUT: return "TIMEOUT";
             case task_manager_msgs::TaskStatus::TASK_CONFIGURATION_FAILED: return "CONFIGURATION FAILED";
             case task_manager_msgs::TaskStatus::TASK_INITIALISATION_FAILED: return "INITIALISATION FAILED";
+            case task_manager_msgs::TaskStatus::TASK_COND_1: return "TASK_COND_1 COMPLETED";
+            case task_manager_msgs::TaskStatus::TASK_COND_2: return "TASK_COND_2 COMPLETED ";
+            case task_manager_msgs::TaskStatus::TASK_COND_3: return "TASK_COND_3 COMPLETED";
+            case task_manager_msgs::TaskStatus::TASK_COND_4: return "TASK_COND_4 COMPLETED";
             default: return "INVALID STATUS";
         }
     }
