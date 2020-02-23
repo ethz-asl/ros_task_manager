@@ -48,6 +48,12 @@ class TaskState(smach.State):
                 return 'TASK_INTERRUPTED'
             elif e.status == TaskStatus.TASK_COND_1:
                 return 'TASK_COND_1'
+            elif e.status == TaskStatus.TASK_COND_2:
+                return 'TASK_COND_2'
+            elif e.status == TaskStatus.TASK_COND_3:
+                return 'TASK_COND_3'
+            elif e.status == TaskStatus.TASK_COND_4:
+                return 'TASK_COND_4'
             return 'TASK_FAILED'
 
     def request_preempt(self):
